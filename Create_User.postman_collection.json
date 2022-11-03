@@ -1,0 +1,177 @@
+{
+	"info": {
+		"_postman_id": "0a867144-59c9-46bc-9ac6-cb09ad9e43bf",
+		"name": "Create_User",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21087618"
+	},
+	"item": [
+		{
+			"name": "Create_User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let cyclesExecutionIndex = pm.environment.get('CYCLES_CONTROL_VARIABLE')\r",
+							"console.log(\"Requests of Cycle: \" + cyclesExecutionIndex + \" completed.\")\r",
+							"let cyclesCount=pm.environment.get('CYCLES_COUNT')\r",
+							"if(cyclesExecutionIndex < cyclesCount){\r",
+							"postman.setNextRequest(\"Create_User\")\r",
+							"++cyclesExecutionIndex\r",
+							"pm.environment.set(\"CYCLES_CONTROL_VARIABLE\",cyclesExecutionIndex)\r",
+							"} else {\r",
+							"postman.setNextRequest(null)\r",
+							"}\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Class-Signature",
+						"value": "{{Generated_signature}}",
+						"type": "text"
+					},
+					{
+						"key": "X-Class-Key",
+						"value": "{{loyalty_intgration_userName}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"customer\": {\r\n        \"phone\": \"{{random_phone_number}}\",\r\n        \"email\": \"{{random_email}}\",\r\n        \"name\": {\r\n            \"last\": \"Smith\",\r\n            \"first\": \"Joe\"\r\n        },\r\n        \"password\": \"Welcome@123\",\r\n        \"dob\": \"1999-05-31\",\r\n        \"gender\": \"m\",\r\n        \"marital_status\": \"married\",\r\n        \"address\": {\r\n            \"city\": \"San Francisco\",\r\n            \"state\": \"CA\",\r\n            \"street\": \"3rd Street\",\r\n            \"zip\": \"94107\",\r\n            \"country\": \"US\"\r\n        },\r\n        \"sms_opt_in\": false,\r\n        \"email_opt_in\": true,\r\n        \"verify_email\": {{verifyEmail}}\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://webservice.skuped.com/loyalty/accounts",
+					"protocol": "https",
+					"host": [
+						"webservice",
+						"skuped",
+						"com"
+					],
+					"path": [
+						"loyalty",
+						"accounts"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"",
+					"// Random phone number generation",
+					"const pre = pm.globals.get(\"phone_initial_num\")",
+					"var currentDate=new Date();",
+					"let parallelRequestsCount=10000+Number.parseInt(pm.environment.get('PARALLEL_REQUESTS_COUNT'))",
+					"var mobile=\"111\"+pm.environment.get('CYCLES_CONTROL_VARIABLE')+currentDate.getDate().toString()+parallelRequestsCount.toString()",
+					"pm.environment.set(\"random_phone_number\", mobile);",
+					"console.log(mobile)",
+					"",
+					"",
+					"     let email=pm.environment.get('EMAIL');",
+					"     let emailARRAY =  email.split('+')",
+					"      let emailComplete=emailARRAY[0]+\"+\"+pm.environment.get('CYCLES_CONTROL_VARIABLE')+emailARRAY[1];",
+					"  console.log(email);",
+					"// Random email generation",
+					"const time = pm.variables.replaceIn(\"{{$timestamp}}\")",
+					"pm.globals.set(\"random_email\",emailComplete);",
+					"",
+					"//pm.collectionVariables.set(\"cu_id\", pm.iterationData.get(\"cu_id\"));",
+					"var dt = new Date();",
+					"",
+					"const currTime = (dt.toISOString().slice(0, 14))+'00:00Z';",
+					"pm.collectionVariables.set(\"current_time\",currTime);",
+					"console.log(currTime)",
+					"",
+					"//signature generation",
+					"const partner_credentials_secret=pm.collectionVariables.get(\"partner_credentials_secret\");",
+					"const queryPar= pm.variables.replaceIn(pm.request.url.getQueryString());",
+					"const res =pm.variables.replaceIn(\"/\"+ pm.request.url.path.toLocaleString().replaceAll(\",\", \"/\"));",
+					"const resource = (!queryPar)? res : (res+\"?\"+queryPar);",
+					"console.log(resource)",
+					"var body = pm.variables.replaceIn(pm.request.body.toString())",
+					"",
+					"var bodyData = body.replaceAll(/(^\\s\\r\\n|\\n|\\r\\s+)/gm,\"\")",
+					" bodyData = bodyData.replaceAll(' \"','\"');",
+					" bodyData = bodyData.replaceAll(': ',':');",
+					"console.log(bodyData)",
+					"  const secret_buffer = CryptoJS.enc.Base64.parse(partner_credentials_secret);",
+					"  const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, secret_buffer);",
+					"  hmac.update(resource, secret_buffer);",
+					" hmac.update(bodyData, secret_buffer);",
+					" pm.globals.set(\"Generated_signature\", hmac.finalize().toString(CryptoJS.enc.Base64));"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "web_context",
+			"value": "RestoCafe_online"
+		},
+		{
+			"key": "cu_id",
+			"value": "495290"
+		},
+		{
+			"key": "loyalty_intgration_userName",
+			"value": "RestoCafe_online"
+		},
+		{
+			"key": "partner_credentials_secret",
+			"value": "R0NHQitQdWJLQ3lTNUhkb0IzR0tEbGd5SnkvSzJra2NscE81WXJadTVTQUFMY3pa"
+		},
+		{
+			"key": "store_id",
+			"value": "0001"
+		},
+		{
+			"key": "merchant_id",
+			"value": "33954"
+		},
+		{
+			"key": "current_time",
+			"value": "2022-10-17T07:00:00Z"
+		},
+		{
+			"key": "reset_count",
+			"value": 1
+		}
+	]
+}
